@@ -1,0 +1,41 @@
+import React, { useState } from 'react';
+
+const MyComponent = () => {
+  const [responses, setResponses] = useState({});
+  
+  const handleResponseChange = (event, questionId) => {
+    setResponses(prevResponses => ({
+      ...prevResponses,
+      [questionId]: event.target.value
+    }));
+  };
+
+  const questions = [
+    { id: 'q1', text: 'Question 1', type: 'select', options: ['Option 1', 'Option 2', 'Option 3'] },
+    { id: 'q2', text: 'Question 2', type: 'text' },
+    // Add more questions here...
+  ];
+
+  return (
+    <div>
+      <h1>Form</h1>
+      {questions.map(question => (
+        <div key={question.id}>
+          <p>{question.text}</p>
+          {question.type === 'select' ? (
+            <select value={responses[question.id] || ''} onChange={(event) => handleResponseChange(event, question.id)}>
+              <option value="">-- Select Response --</option>
+              {question.options.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+          ) : (
+            <input type="text" value={responses[question.id] || ''} onChange={(event) => handleResponseChange(event, question.id)} />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+export default MyComponent;
