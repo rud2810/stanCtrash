@@ -17,22 +17,32 @@ const MyComponent = () => {
       text: 'Did you complete the year?',
       type: 'select',
       options: ['Yes', 'No'],
-      nextQuestionKey: 'q2',
-      nextQuestionYesText: 'How was your experience?',
-      nextQuestionNoText: 'Why did you not complete the year?'
+      nextQuestions: [
+        { response: 'Yes', text: 'How was your experience?' },
+        { response: 'No', text: 'Why did you not complete the year?' }
+      ]
     },
     {
       id: 'q2',
-      text: '',
+      text: 'How was your experience?',
       type: 'textarea',
-      placeholder: '',
       dependsOn: 'q1',
       dependsOnResponse: 'Yes'
+    },
+    {
+      id: 'q3',
+      text: 'Why did you not complete the year?',
+      type: 'textarea',
+      dependsOn: 'q1',
+      dependsOnResponse: 'No'
     },
     // Add more questions here...
   ];
 
-  const getQuestionText = (question) => {
+  const getQuestion = (questionId) => questions.find(question => question.id === questionId);
+
+  const getQuestionText = (questionId) => {
+    const question = getQuestion(questionId);
     if (question.dependsOn && question.dependsOnResponse) {
       const dependsOnResponse = responses[question.dependsOn];
       return dependsOnResponse === question.dependsOnResponse ? question.text : '';
@@ -40,42 +50,42 @@ const MyComponent = () => {
     return question.text;
   };
 
-  const getQuestionPlaceholder = (question) => {
-    if (question.dependsOn && question.dependsOnResponse) {
-      const dependsOnResponse = responses[question.dependsOn];
-      return dependsOnResponse === question.dependsOnResponse ? question.placeholder : '';
+  const getNextQuestions = (questionId) => {
+    const question = getQuestion(questionId);
+    if (question.nextQuestions) {
+      return question.nextQuestions;
     }
-    return question.placeholder;
-  };
-
-  const getNextQuestionKey = (question) => {
-    if (question.dependsOn && question.dependsOnResponse) {
-      const dependsOnResponse = responses[question.dependsOn];
-      return dependsOnResponse === question.dependsOnResponse ? question.nextQuestionKey : '';
-    }
-    return question.nextQuestionKey;
+    return [];
   };
 
   return (
     <div>
       <h1>Form</h1>
-      {questions.map(question => (
-        <div key={question.id}>
-          <p>{getQuestionText(question)}</p>
-          {question.type === 'select' ? (
-            <select value={responses[question.id] || ''} onChange={(event) => handleResponseChange(event, question.id)}>
+      {Object.keys(responses).map(questionId => (
+        <div key={questionId}>
+          <p>{getQuestionText(questionId)}</p>
+          {getQuestion(questionId).type === 'select' ? (
+            <select value={responses[questionId]} onChange={(event) => handleResponseChange(event, questionId)}>
               <option value="">-- Select Response --</option>
-              {question.options.map(option => (
+              {getQuestion(questionId).options.map(option => (
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>
           ) : (
             <textarea
-              value={responses[question.id] || ''}
-              onChange={(event) => handleResponseChange(event, question.id)}
-              placeholder={getQuestionPlaceholder(question)}
+              value={responses[questionId]}
+              onChange={(event) => handleResponseChange(event, questionId)}
             />
           )}
+        </div>
+      ))}
+      {getNextQuestions(Object.keys(responses)[Object.keys(responses).length - 1]).map(nextQuestion => (
+        <div key={nextQuestion.response}>
+          <p>{nextQuestion.text}</p>
+          <textarea
+            value={responses[nextQuestion.response] || ''}
+            onChange={(event) => handleResponseChange(event, nextQuestion.response)}
+          />
         </div>
       ))}
     </div>
