@@ -4,24 +4,64 @@ const MyComponent = () => {
   const [responses, setResponses] = useState({});
   
   const handleResponseChange = (event, questionId) => {
-    setResponses(prevResponses => ({
-      ...prevResponses,
+    const newResponses = {
+      ...responses,
       [questionId]: event.target.value
-    }));
+    };
+    setResponses(newResponses);
   };
 
   const questions = [
-    { id: 'q1', text: 'Question 1', type: 'select', options: ['Option 1', 'Option 2', 'Option 3'] },
-    { id: 'q2', text: 'Question 2', type: 'text' },
+    { 
+      id: 'q1',
+      text: 'Did you complete the year?',
+      type: 'select',
+      options: ['Yes', 'No'],
+      nextQuestionKey: 'q2',
+      nextQuestionYesText: 'How was your experience?',
+      nextQuestionNoText: 'Why did you not complete the year?'
+    },
+    {
+      id: 'q2',
+      text: '',
+      type: 'textarea',
+      placeholder: '',
+      dependsOn: 'q1',
+      dependsOnResponse: 'Yes'
+    },
     // Add more questions here...
   ];
+
+  const getQuestionText = (question) => {
+    if (question.dependsOn && question.dependsOnResponse) {
+      const dependsOnResponse = responses[question.dependsOn];
+      return dependsOnResponse === question.dependsOnResponse ? question.text : '';
+    }
+    return question.text;
+  };
+
+  const getQuestionPlaceholder = (question) => {
+    if (question.dependsOn && question.dependsOnResponse) {
+      const dependsOnResponse = responses[question.dependsOn];
+      return dependsOnResponse === question.dependsOnResponse ? question.placeholder : '';
+    }
+    return question.placeholder;
+  };
+
+  const getNextQuestionKey = (question) => {
+    if (question.dependsOn && question.dependsOnResponse) {
+      const dependsOnResponse = responses[question.dependsOn];
+      return dependsOnResponse === question.dependsOnResponse ? question.nextQuestionKey : '';
+    }
+    return question.nextQuestionKey;
+  };
 
   return (
     <div>
       <h1>Form</h1>
       {questions.map(question => (
         <div key={question.id}>
-          <p>{question.text}</p>
+          <p>{getQuestionText(question)}</p>
           {question.type === 'select' ? (
             <select value={responses[question.id] || ''} onChange={(event) => handleResponseChange(event, question.id)}>
               <option value="">-- Select Response --</option>
@@ -30,7 +70,11 @@ const MyComponent = () => {
               ))}
             </select>
           ) : (
-            <input type="text" value={responses[question.id] || ''} onChange={(event) => handleResponseChange(event, question.id)} />
+            <textarea
+              value={responses[question.id] || ''}
+              onChange={(event) => handleResponseChange(event, question.id)}
+              placeholder={getQuestionPlaceholder(question)}
+            />
           )}
         </div>
       ))}
